@@ -1,0 +1,1536 @@
+;check the first three switches, if 100, 010, 001 go to diff person
+;after switch is selected, yellow led lights up. go to keypad, for each switch there's a diff function, 
+switch: equ 81h
+led: equ 80h
+keypad: equ 82h
+ctrl1: equ 83h
+sevseg1: equ 0f0h
+sevseg2: equ 0f1h
+sevseg3: equ 0f2h
+ctrl2: equ 0f3h
+
+
+org 0000h
+lxi sp, 3fffh
+mvi a, 10001011b ;port a led out, port b switch in, port c keypad in
+out ctrl1
+mvi a, 10000000b ;port a,b,c all output sev seg
+out ctrl2
+
+main:
+mvi a, 0
+out led
+out sevseg1
+out sevseg2
+out sevseg3
+
+checkid:
+in switch
+cpi 10000000b
+jz adampass
+cpi 01000000b
+jz billypass
+cpi 00100000b
+jz chloepass
+call delay
+jmp checkid
+
+
+adampass:
+;in from keypad, loop, if keypad correct go to next for four times, if wrong jmp wrong led path and continue.
+;jmp adambalance
+;checkreset
+call initadampass ;store adam's password 0123 into memory
+mvi a, 10000000b ;yellow led
+out led 
+in keypad
+sta mydata
+ani 10h
+jnz adampass1
+call delay
+jmp adampass
+
+billypass:
+call initbillypass
+mvi a,10000000b
+out led
+in keypad
+sta mydata
+ani 10h
+jnz billypass1
+call delay
+jmp billypass
+
+chloepass:
+call initchloepass
+mvi a, 10000000b ;yellow led
+out led 
+in keypad
+sta mydata
+ani 10h
+jnz chloepass1
+call delay
+jmp chloepass
+
+;============================================================
+
+adampass1:
+lda mydata
+ani 0fh
+lxi h, enteredpass+4
+mov m,a
+mvi a, 10001000b ;first 3 led have colour, the rest black
+out led
+jmp adambuffer2
+
+adambuffer2:
+call delay
+in keypad
+sta mydata
+ani 10h
+jnz adampass2
+call delay
+jmp adambuffer2
+
+adampass2:
+lda mydata
+ani 0fh
+lxi h,enteredpass+3
+mov m,a
+mvi a,10001100b
+out led
+jmp adambuffer3
+
+adambuffer3:
+call delay
+in keypad
+sta mydata
+ani 10h
+jnz adampass3
+call delay
+jmp adambuffer3
+
+adampass3:
+lda mydata
+ani 0fh
+lxi h,enteredpass+2
+mov m,a
+mvi a,10001110b
+out led
+jmp adambuffer4
+
+adambuffer4:
+call delay
+in keypad
+sta mydata
+ani 10h
+jnz adampass4
+call delay
+jmp adambuffer4
+
+adampass4:
+lda mydata
+ani 0fh
+lxi h,enteredpass+1
+mov m,a
+mvi a,10001111b
+out led
+call delay
+jmp adamcheckpass
+
+adamcheckpass:
+lda password
+mov b,a
+lxi h, enteredpass+4
+mov a,m
+cmp b
+jnz wrong ;reset program if password wrong
+lda password+1
+mov b,a
+lxi h,enteredpass+3
+mov a,m
+cmp b
+jnz wrong
+lda password+2
+mov b,a
+lxi h,enteredpass+2
+mov a,m
+cmp b
+jnz wrong
+lda password+3
+mov b,a
+lxi h,enteredpass+1
+mov a,m
+cmp b
+jnz wrong
+mvi a, 01000000b ;green led lights up
+out led
+jmp adambalance
+
+;----------------------------------------------------------
+
+billypass1:
+lda mydata
+ani 0fh
+lxi h, enteredpass+4
+mov m,a
+mvi a, 10001000b ;first 3 led have colour, the rest black
+out led
+jmp billybuffer2
+
+billybuffer2:
+call delay
+in keypad
+sta mydata
+ani 10h
+jnz billypass2
+call delay
+jmp billybuffer2
+
+billypass2:
+lda mydata
+ani 0fh
+lxi h,enteredpass+3
+mov m,a
+mvi a,10001100b
+out led
+jmp billybuffer3
+
+billybuffer3:
+call delay
+in keypad
+sta mydata
+ani 10h
+jnz billypass3
+call delay
+jmp billybuffer3
+
+billypass3:
+lda mydata
+ani 0fh
+lxi h,enteredpass+2
+mov m,a
+mvi a,10001110b
+out led
+jmp billybuffer4
+
+billybuffer4:
+call delay
+in keypad
+sta mydata
+ani 10h
+jnz billypass4
+call delay
+jmp billybuffer4
+
+billypass4:
+lda mydata
+ani 0fh
+lxi h,enteredpass+1
+mov m,a
+mvi a,10001111b
+out led
+call delay
+jmp billycheckpass
+
+billycheckpass:
+lda password
+mov b,a
+lxi h, enteredpass+4
+mov a,m
+cmp b
+jnz wrong ;reset program if password wrong
+lda password+1
+mov b,a
+lxi h,enteredpass+3
+mov a,m
+cmp b
+jnz wrong
+lda password+2
+mov b,a
+lxi h,enteredpass+2
+mov a,m
+cmp b
+jnz wrong
+lda password+3
+mov b,a
+lxi h,enteredpass+1
+mov a,m
+cmp b
+jnz wrong
+mvi a, 01000000b ;green led lights up
+out led
+jmp billybalance
+
+;----------------------------------------------------------
+
+chloepass1:
+lda mydata
+ani 0fh
+lxi h, enteredpass+4
+mov m,a
+mvi a, 10001000b ;first 3 led have colour, the rest black
+out led
+jmp chloebuffer2
+
+chloebuffer2:
+call delay
+in keypad
+sta mydata
+ani 10h
+jnz chloepass2
+call delay
+jmp chloebuffer2
+
+chloepass2:
+lda mydata
+ani 0fh
+lxi h,enteredpass+3
+mov m,a
+mvi a,10001100b
+out led
+jmp chloebuffer3
+
+chloebuffer3:
+call delay
+in keypad
+sta mydata
+ani 10h
+jnz chloepass3
+call delay
+jmp chloebuffer3
+
+chloepass3:
+lda mydata
+ani 0fh
+lxi h,enteredpass+2
+mov m,a
+mvi a,10001110b
+out led
+jmp chloebuffer4
+
+chloebuffer4:
+call delay
+in keypad
+sta mydata
+ani 10h
+jnz chloepass4
+call delay
+jmp chloebuffer4
+
+chloepass4:
+lda mydata
+ani 0fh
+lxi h,enteredpass+1
+mov m,a
+mvi a,10001111b
+out led
+call delay
+jmp chloecheckpass
+
+chloecheckpass:
+lda password
+mov b,a
+lxi h, enteredpass+4
+mov a,m
+cmp b
+jnz wrong ;reset program if password wrong
+lda password+1
+mov b,a
+lxi h,enteredpass+3
+mov a,m
+cmp b
+jnz wrong
+lda password+2
+mov b,a
+lxi h,enteredpass+2
+mov a,m
+cmp b
+jnz wrong
+lda password+3
+mov b,a
+lxi h,enteredpass+1
+mov a,m
+cmp b
+jnz wrong
+mvi a, 01000000b ;green led lights up
+out led
+jmp chloebalance
+
+;============================================================
+
+adambalance:
+;display the balance 220 to each 7 seg
+;jmp adamwithdraw
+lxi h, sevsegdata+1 ;2
+mov a,m
+out sevseg1
+out sevseg2
+lxi h, sevsegdata+13 ;0
+mov a,m
+out sevseg3
+in keypad
+sta mydata
+ani 10h
+jnz adamwithdraw1
+call delay
+jmp adambalance
+
+billybalance:
+lxi h, sevsegdata ;1
+mov a,m
+out sevseg1
+lxi h, sevsegdata+9 ;8
+mov a,m
+out sevseg2
+lxi h, sevsegdata+13 ;0
+mov a,m
+out sevseg3
+in keypad
+sta mydata
+ani 10h
+jnz billywithdraw1
+call delay
+jmp billybalance
+
+chloebalance:
+mvi a,00h ;empty
+out sevseg1
+lxi h, sevsegdata+10 ;9
+mov a,m
+out sevseg2
+lxi h, sevsegdata+13 ;0
+mov a,m
+out sevseg3
+in keypad
+sta mydata
+ani 10h
+jnz chloewithdraw1
+call delay
+jmp chloebalance
+
+;=========================================================
+
+adamwithdraw1:
+lda mydata
+ani 0fh
+sta enteredbalance+1
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg3
+mvi a,0
+out sevseg2
+out sevseg1
+call delay
+jmp adamwithdrawbuffer2
+
+adamwithdrawbuffer2:
+in keypad
+sta mydata
+ani 10h
+jnz adamwithdraw2
+call delay
+;call check enter and reset switches?
+jmp adamwithdrawbuffer2
+
+adamwithdraw2:
+lda mydata
+ani 0fh
+sta enteredbalance+2
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg3
+lxi h, enteredbalance+1
+mov a,m
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg2
+call delay
+jmp adamwithdrawbuffer3
+
+adamwithdrawbuffer3:
+in keypad
+sta mydata
+ani 10h
+jnz adamwithdraw3
+call delay
+jmp adamwithdrawbuffer3
+
+adamwithdraw3:
+lda mydata
+ani 0fh
+sta enteredbalance+3
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg3
+lxi h, enteredbalance+2
+mov a,m
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg2
+lxi h, enteredbalance+1
+mov a,m
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg1
+call delay
+jmp computewithdraw1
+
+;----------------------------------------------------------
+
+billywithdraw1:
+lda mydata
+ani 0fh
+sta enteredbalance+1
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg3
+mvi a,0
+out sevseg2
+out sevseg1
+call delay
+jmp billywithdrawbuffer2
+
+billywithdrawbuffer2:
+in keypad
+sta mydata
+ani 10h
+jnz billywithdraw2
+call delay
+jmp billywithdrawbuffer2
+
+billywithdraw2:
+lda mydata
+ani 0fh
+sta enteredbalance+2
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg3
+lxi h, enteredbalance+1
+mov a,m
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg2
+call delay
+jmp billywithdrawbuffer3
+
+billywithdrawbuffer3:
+in keypad
+sta mydata
+ani 10h
+jnz billywithdraw3
+call delay
+jmp billywithdrawbuffer3
+
+billywithdraw3:
+lda mydata
+ani 0fh
+sta enteredbalance+3
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg3
+lxi h, enteredbalance+2
+mov a,m
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg2
+lxi h, enteredbalance+1
+mov a,m
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg1
+call delay
+jmp computebillywithdraw1
+
+;----------------------------------------------------------
+
+chloewithdraw1:
+lda mydata
+ani 0fh
+sta enteredbalance+1
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg3
+mvi a,0
+out sevseg2
+out sevseg1
+call delay
+jmp chloewithdrawbuffer2
+
+chloewithdrawbuffer2:
+in keypad
+sta mydata
+ani 10h
+jnz chloewithdraw2
+call delay
+jmp chloewithdrawbuffer2
+
+chloewithdraw2:
+lda mydata
+ani 0fh
+sta enteredbalance+2
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg3
+lxi h, enteredbalance+1
+mov a,m
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg2
+call delay
+jmp chloewithdrawbuffer3
+
+chloewithdrawbuffer3:
+in keypad
+sta mydata
+ani 10h
+jnz chloewithdraw3
+call delay
+jmp chloewithdrawbuffer3
+
+chloewithdraw3:
+lda mydata
+ani 0fh
+sta enteredbalance+3
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg3
+lxi h, enteredbalance+2
+mov a,m
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg2
+lxi h, enteredbalance+1
+mov a,m
+lxi h,sevsegdata
+lxi d,00h
+mov e,a
+dad d
+mov a,m
+out sevseg1
+call delay
+jmp computechloewithdraw1
+
+;=========================================================================
+
+computewithdraw1:
+lda enteredbalance+3
+;now call out all the entered balances, change to a number and add to enteredbalance+4
+cpi 00000000b
+jz saveone1
+cpi 00000001b
+jz savetwo1
+cpi 00000010b
+jz savethree1
+cpi 00000011b
+jz savezero1
+cpi 00000100b
+jz savefour1
+cpi 00000101b
+jz savefive1
+cpi 00000110b
+jz savesix1
+cpi 00000111b
+jz savezero1
+cpi 00001000b
+jz saveseven1
+cpi 00001001b
+jz saveeight1
+cpi 00001010b
+jz savenine1
+cpi 00001011b
+jz savezero1
+cpi 00001100b
+jz savezero1
+cpi 00001101b
+jz savezero1
+cpi 00001110b
+jz savezero1
+cpi 00001111b
+jz savezero1
+
+savezero1:
+mvi a,00h
+sta enteredbalance+4
+jmp computewithdraw10
+
+saveone1:
+mvi a,01h
+sta enteredbalance+4
+jmp computewithdraw10
+
+savetwo1:
+mvi a,02h
+sta enteredbalance+4
+jmp computewithdraw10
+
+savethree1:
+mvi a,03h
+sta enteredbalance+4
+jmp computewithdraw10
+
+savefour1:
+mvi a,04h
+sta enteredbalance+4
+jmp computewithdraw10
+
+savefive1:
+mvi a,05h
+sta enteredbalance+4
+jmp computewithdraw10
+
+savesix1:
+mvi a,06h
+sta enteredbalance+4
+jmp computewithdraw10
+
+saveseven1:
+mvi a,07h
+sta enteredbalance+4
+jmp computewithdraw10
+
+saveeight1:
+mvi a,08h
+sta enteredbalance+4
+jmp computewithdraw10
+
+savenine1:
+mvi a,09h
+sta enteredbalance+4
+jmp computewithdraw10
+
+
+computewithdraw10:
+lda enteredbalance+2
+cpi 00000000b
+jz saveone2
+cpi 00000001b
+jz savetwo2
+cpi 00000010b
+jz savethree2
+cpi 00000011b
+jz savezero2
+cpi 00000100b
+jz savefour2
+cpi 00000101b
+jz savefive2
+cpi 00000110b
+jz savesix2
+cpi 00000111b
+jz savezero2
+cpi 00001000b
+jz saveseven2
+cpi 00001001b
+jz saveeight2
+cpi 00001010b
+jz savenine2
+cpi 00001011b
+jz savezero2
+cpi 00001100b
+jz savezero2
+cpi 00001101b
+jz savezero2
+cpi 00001110b
+jz savezero2
+cpi 00001111b
+jz savezero2
+
+savezero2:
+jmp computewithdraw100
+
+saveone2:
+mvi b,10
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computewithdraw100
+
+savetwo2:
+mvi b,20
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computewithdraw100
+
+savethree2:
+mvi b,30
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computewithdraw100
+
+savefour2:
+mvi b,40
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computewithdraw100
+
+savefive2:
+mvi b,50
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computewithdraw100
+
+savesix2:
+mvi b,60
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computewithdraw100
+
+saveseven2:
+mvi b,70
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computewithdraw100
+
+saveeight2:
+mvi b,80
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computewithdraw100
+
+savenine2:
+mvi b,90
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computewithdraw100
+
+
+computewithdraw100:
+lda enteredbalance+1
+cpi 00000000b
+jz saveone3
+cpi 00000001b
+jz savetwo3
+jmp savezero3
+
+savezero3:
+jmp computebalanceleftadam
+
+saveone3:
+mvi b,100
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebalanceleftadam
+
+savetwo3:
+mvi b,200
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebalanceleftadam
+
+
+computebalanceleftadam:
+lda enteredbalance+4
+mov b,a
+mvi a,220
+cmp b
+jc wrongbalance
+sub b
+sta balanceleft
+jmp processbalanceleft
+
+;--------------------------------------------------------------------------
+
+computebillywithdraw1:
+lda enteredbalance+3
+;now call out all the entered balances, change to a number and add to enteredbalance+4
+cpi 00000000b
+jz savebillyone1
+cpi 00000001b
+jz savebillytwo1
+cpi 00000010b
+jz savebillythree1
+cpi 00000011b
+jz savebillyzero1
+cpi 00000100b
+jz savebillyfour1
+cpi 00000101b
+jz savebillyfive1
+cpi 00000110b
+jz savebillysix1
+cpi 00000111b
+jz savebillyzero1
+cpi 00001000b
+jz savebillyseven1
+cpi 00001001b
+jz savebillyeight1
+cpi 00001010b
+jz savebillynine1
+cpi 00001011b
+jz savebillyzero1
+cpi 00001100b
+jz savebillyzero1
+cpi 00001101b
+jz savebillyzero1
+cpi 00001110b
+jz savebillyzero1
+cpi 00001111b
+jz savebillyzero1
+
+savebillyzero1:
+mvi a,00h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+savebillyone1:
+mvi a,01h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+savebillytwo1:
+mvi a,02h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+savebillythree1:
+mvi a,03h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+savebillyfour1:
+mvi a,04h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+savebillyfive1:
+mvi a,05h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+savebillysix1:
+mvi a,06h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+savebillyseven1:
+mvi a,07h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+savebillyeight1:
+mvi a,08h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+savebillynine1:
+mvi a,09h
+sta enteredbalance+4
+jmp computebillywithdraw10
+
+
+computebillywithdraw10:
+lda enteredbalance+2
+cpi 00000000b
+jz savebillyone2
+cpi 00000001b
+jz savebillytwo2
+cpi 00000010b
+jz savebillythree2
+cpi 00000011b
+jz savebillyzero2
+cpi 00000100b
+jz savebillyfour2
+cpi 00000101b
+jz savebillyfive2
+cpi 00000110b
+jz savebillysix2
+cpi 00000111b
+jz savebillyzero2
+cpi 00001000b
+jz savebillyseven2
+cpi 00001001b
+jz savebillyeight2
+cpi 00001010b
+jz savebillynine2
+cpi 00001011b
+jz savebillyzero2
+cpi 00001100b
+jz savebillyzero2
+cpi 00001101b
+jz savebillyzero2
+cpi 00001110b
+jz savebillyzero2
+cpi 00001111b
+jz savebillyzero2
+
+savebillyzero2:
+jmp computebillywithdraw100
+
+savebillyone2:
+mvi b,10
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebillywithdraw100
+
+savebillytwo2:
+mvi b,20
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebillywithdraw100
+
+savebillythree2:
+mvi b,30
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebillywithdraw100
+
+savebillyfour2:
+mvi b,40
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebillywithdraw100
+
+savebillyfive2:
+mvi b,50
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebillywithdraw100
+
+savebillysix2:
+mvi b,60
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebillywithdraw100
+
+savebillyseven2:
+mvi b,70
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebillywithdraw100
+
+savebillyeight2:
+mvi b,80
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebillywithdraw100
+
+savebillynine2:
+mvi b,90
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebillywithdraw100
+
+
+computebillywithdraw100:
+lda enteredbalance+1
+cpi 00000000b
+jz savebillyone3
+cpi 00000001b
+jz savebillytwo3
+jmp savebillyzero3
+
+savebillyzero3:
+jmp computebalanceleftbilly
+
+savebillyone3:
+mvi b,100
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebalanceleftbilly
+
+savebillytwo3:
+mvi b,200
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebalanceleftbilly
+
+
+computebalanceleftbilly:
+lda enteredbalance+4
+mov b,a
+mvi a,180
+cmp b
+jc wrongbalance
+sub b
+sta balanceleft
+jmp processbalanceleft
+
+;----------------------------------------------------------------------------
+
+computechloewithdraw1:
+lda enteredbalance+3
+;now call out all the entered balances, change to a number and add to enteredbalance+4
+cpi 00000000b
+jz savechloeone1
+cpi 00000001b
+jz savechloetwo1
+cpi 00000010b
+jz savechloethree1
+cpi 00000011b
+jz savechloezero1
+cpi 00000100b
+jz savechloefour1
+cpi 00000101b
+jz savechloefive1
+cpi 00000110b
+jz savechloesix1
+cpi 00000111b
+jz savechloezero1
+cpi 00001000b
+jz savechloeseven1
+cpi 00001001b
+jz savechloeeight1
+cpi 00001010b
+jz savechloenine1
+cpi 00001011b
+jz savechloezero1
+cpi 00001100b
+jz savechloezero1
+cpi 00001101b
+jz savechloezero1
+cpi 00001110b
+jz savechloezero1
+cpi 00001111b
+jz savechloezero1
+
+savechloezero1:
+mvi a,00h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+savechloeone1:
+mvi a,01h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+savechloetwo1:
+mvi a,02h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+savechloethree1:
+mvi a,03h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+savechloefour1:
+mvi a,04h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+savechloefive1:
+mvi a,05h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+savechloesix1:
+mvi a,06h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+savechloeseven1:
+mvi a,07h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+savechloeeight1:
+mvi a,08h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+savechloenine1:
+mvi a,09h
+sta enteredbalance+4
+jmp computechloewithdraw10
+
+
+computechloewithdraw10:
+lda enteredbalance+2
+cpi 00000000b
+jz savechloeone2
+cpi 00000001b
+jz savechloetwo2
+cpi 00000010b
+jz savechloethree2
+cpi 00000011b
+jz savechloezero2
+cpi 00000100b
+jz savechloefour2
+cpi 00000101b
+jz savechloefive2
+cpi 00000110b
+jz savechloesix2
+cpi 00000111b
+jz savechloezero2
+cpi 00001000b
+jz savechloeseven2
+cpi 00001001b
+jz savechloeeight2
+cpi 00001010b
+jz savechloenine2
+cpi 00001011b
+jz savechloezero2
+cpi 00001100b
+jz savechloezero2
+cpi 00001101b
+jz savechloezero2
+cpi 00001110b
+jz savechloezero2
+cpi 00001111b
+jz savechloezero2
+
+savechloezero2:
+jmp computechloewithdraw100
+
+savechloeone2:
+mvi b,10
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computechloewithdraw100
+
+savechloetwo2:
+mvi b,20
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computechloewithdraw100
+
+savechloethree2:
+mvi b,30
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computechloewithdraw100
+
+savechloefour2:
+mvi b,40
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computechloewithdraw100
+
+savechloefive2:
+mvi b,50
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computechloewithdraw100
+
+savechloesix2:
+mvi b,60
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computechloewithdraw100
+
+savechloeseven2:
+mvi b,70
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computechloewithdraw100
+
+savechloeeight2:
+mvi b,80
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computechloewithdraw100
+
+savechloenine2:
+mvi b,90
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computechloewithdraw100
+
+
+computechloewithdraw100:
+lda enteredbalance+1
+cpi 00000000b
+jz savechloeone3
+cpi 00000001b
+jz savechloetwo3
+jmp savechloezero3
+
+savechloezero3:
+jmp computebalanceleftchloe
+
+savechloeone3:
+mvi b,100
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebalanceleftchloe
+
+savechloetwo3:
+mvi b,200
+lda enteredbalance+4
+add b
+sta enteredbalance+4
+jmp computebalanceleftchloe
+
+
+computebalanceleftchloe:
+lda enteredbalance+4
+mov b,a
+mvi a,90
+cmp b
+jc wrongbalance
+sub b
+sta balanceleft
+jmp processbalanceleft
+
+;===========================================================================
+
+processbalanceleft:
+;check if less than 100, if yes jump to next, otherwise decrement by 100, add to balanceleftdigit+1
+;then by 10
+;then by 1
+;display to sevseg1,2,3; glow green led, call delay a few times, turn off/go back to checkid
+mvi a,0
+sta balanceleftdigit+1
+sta balanceleftdigit+2
+sta balanceleftdigit+3
+decrement100:
+lda balanceleft
+cpi 100
+jc decrement10
+sui 100
+sta balanceleft
+lda balanceleftdigit+1
+adi 01h
+sta balanceleftdigit+1
+jmp decrement100
+decrement10:
+lda balanceleft
+cpi 10
+jc decrement1
+sui 10
+sta balanceleft
+lda balanceleftdigit+2
+adi 01h
+sta balanceleftdigit+2
+jmp decrement10
+decrement1:
+lda balanceleft
+cpi 00h
+jz displaybalanceleft
+sui 1
+sta balanceleft
+lda balanceleftdigit+3
+adi 01h
+sta balanceleftdigit+3
+jmp decrement1
+
+
+displaybalanceleft:
+lda balanceleftdigit+1
+lxi d,00h
+mov e,a
+lxi h,sevsegdatalite
+dad d
+mov a,m
+out sevseg1
+lda balanceleftdigit+2
+lxi d,00h
+mov e,a
+lxi h,sevsegdatalite
+dad d
+mov a,m
+out sevseg2
+lda balanceleftdigit+3
+lxi d,00h
+mov e,a
+lxi h,sevsegdatalite
+dad d
+mov a,m
+out sevseg3
+mvi a,01000000b ;green led
+out led
+call delay
+mvi a,01010000b
+out led
+call delay
+mvi a,01001000b
+out led
+call delay
+mvi a,01000100b
+out led
+call delay
+mvi a,01000010b
+out led
+call delay
+mvi a,01000001b
+out led
+call delay
+mvi a,01000010b
+out led
+call delay
+mvi a,01000100b
+out led
+call delay
+mvi a,01001000b
+out led
+call delay
+mvi a,01010000b
+out led
+call delay
+mvi a,01000000b
+out led
+call delay
+call delay
+jmp main
+
+
+wrongbalance:
+mvi a,0ffh
+out sevseg1
+out sevseg2
+out sevseg3
+mvi a,00100000b
+out led
+call delay
+call delay
+call delay
+call delay
+call delay
+jmp wrong
+
+wrong:
+mvi a, 00100000b ;red led lights up
+out led
+call delay
+jmp main ;reset the program
+
+initadampass: ;initiate memory with adam's password, 1234
+lxi h,password
+mvi a,00000000b
+mov m,a
+inx h
+mvi a,00000001b
+mov m,a
+inx h
+mvi a,00000010b
+mov m,a
+inx h
+mvi a,00000100b
+mov m,a
+ret
+
+initbillypass: ;billy's password 4567
+lxi h,password
+mvi a,00000100b
+mov m,a
+inx h
+mvi a,00000101b
+mov m,a
+inx h
+mvi a,00000110b
+mov m,a
+inx h
+mvi a,00001000b
+mov m,a
+ret
+
+initchloepass: ;chloe's password 7890
+lxi h,password
+mvi a,00001000b
+mov m,a
+inx h
+mvi a,00001001b
+mov m,a
+inx h
+mvi a,00001010b
+mov m,a
+inx h
+mvi a,00001101b
+mov m,a
+ret
+
+
+delay:
+mvi c, 10
+dly:
+dcr c
+jnz dly
+ret
+
+org 4000h
+mydata: dfs 2
+password: dfs 5
+enteredpass: dfs 5
+sevsegdata:
+DFB 00000110B, 01011011B, 01001111B, 01110111B ;1,2,3,A
+DFB 01100110B, 01101101B, 01111101B, 01111100B ;4,5,6,B
+DFB 00000111B, 01111111B, 01101111B, 00111001B ;7,8,9,C
+DFB 01011100B, 00111111B, 01110110B, 01011110B ;*,0,#,D
+sevsegdatalite:
+DFB 00111111B, 00000110B, 01011011B, 01001111B ;0,1,2,3
+DFB 01100110B, 01101101B, 01111101B ;4,5,6
+DFB 00000111B, 01111111B, 01101111B ;7,8,9
+enteredbalance: dfs 4
+balanceleftdigit: dfs 4
+balanceleft: dfs 2
